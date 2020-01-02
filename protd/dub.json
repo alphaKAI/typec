@@ -1,0 +1,12 @@
+{
+	"authors": [
+		"alphakai"
+	],
+	"copyright": "Copyright © 2019-2020, alphakai",
+	"dependencies": {
+		"pegged": "~>0.4.4"
+	},
+	"description": "Prototype TypeC Parser",
+	"license": "MIT",
+	"name": "protd"
+}
