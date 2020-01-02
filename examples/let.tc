@@ -1,0 +1,8 @@
+let x = 10;
+
+fn main(): int {
+  let y = x * x in
+  let z = y + y in
+    printf("z: %d\n", z);
+    0
+}

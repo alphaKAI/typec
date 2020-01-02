@@ -1,0 +1,6 @@
+import std.stdio;
+
+fn main(): int {
+  println("Hello, world");
+  0
+}

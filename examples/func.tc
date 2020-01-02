@@ -1,0 +1,12 @@
+fn square<T>(x: T): T {
+  x * x
+}
+
+fn twice(x: int): int {
+  return x * 2;
+}
+
+fn func(x: int): int {
+  let y = x * x in
+    x + y
+}
