@@ -94,8 +94,16 @@ module Parser =
         |> between (parseChar '[') (parseChar ']')
         |>> ListLiteral
 
+    let parseFunctionLiteral =
+        parseString "fun" >>. parseParameterList .>>. (parseString "->" >>. parseExpr)
+        |>> (fun (ps, e) ->
+            FunctionLiteral
+                { ParameterList = ps
+                  Expr = e })
+
     let parseLiteral =
-        choice [ parseIntLiteral; parseStringLiteral; parseVoidLiteral; parseArrayLiteral; parseListLiteral ]
+        choice
+            [ parseIntLiteral; parseStringLiteral; parseVoidLiteral; parseArrayLiteral; parseListLiteral; parseFunctionLiteral ]
         |>> Literal |> between ws ws
 
     let parseVariable = parseSymbol |>> Expr.Variable
@@ -150,19 +158,19 @@ module Parser =
         let parseTemplateFunctionDef =
             parseString "fn" >>. parseSymbol .>>. parseTemplateParameterList .>>. parseParameterList
             .>>. parseTypeAnnotation .>>. parseBlock
-            |>> (fun ((((funcName, templateParameters), parameters), retType), block) ->
+            |>> (fun ((((funcName, templateParameterList), parameterList), retType), block) ->
                 { FuncName = funcName
-                  OptTemplateParameterDef = Some templateParameters
-                  Parameters = parameters
+                  OptTemplateParameterDef = Some templateParameterList
+                  ParameterList = parameterList
                   ReturnType = retType
                   FuncCode = block })
 
         let parseNomalFunctionDef =
             parseString "fn" >>. parseSymbol .>>. parseParameterList .>>. parseTypeAnnotation .>>. parseBlock
-            |>> (fun (((funcName, parameters), retType), block) ->
+            |>> (fun (((funcName, parameterList), retType), block) ->
                 { FuncName = funcName
                   OptTemplateParameterDef = None
-                  Parameters = parameters
+                  ParameterList = parameterList
                   ReturnType = retType
                   FuncCode = block })
 
@@ -182,7 +190,7 @@ module Parser =
         FunctionDef
             ({ FuncName = "main"
                OptTemplateParameterDef = None
-               Parameters = []
+               ParameterList = []
                ReturnType = BasicType(IntType(DefaultInt))
                FuncCode =
                    [ CallExpr

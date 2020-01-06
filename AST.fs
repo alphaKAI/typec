@@ -15,7 +15,7 @@ module AST =
     and FunctionDef =
         { FuncName: string
           OptTemplateParameterDef: TemplateParameterList option
-          Parameters: ParameterList
+          ParameterList: ParameterList
           ReturnType: TypeSpec
           FuncCode: Block }
 
@@ -204,3 +204,8 @@ module AST =
         | VoidLiteral
         | ListLiteral of Expr list
         | ArrayLiteral of Expr list
+        | FunctionLiteral of FunctionLiteral
+
+    and FunctionLiteral =
+        { ParameterList: ParameterList
+          Expr: Expr }

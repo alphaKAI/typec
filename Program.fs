@@ -86,6 +86,21 @@ let doParserTest () =
           IntegerLiteral(2L) |> Literal
           IntegerLiteral(3L) |> Literal
         ]) |> Literal)
+        ("fun () -> ()",
+          FunctionLiteral {
+            ParameterList = []
+            Expr = Literal(VoidLiteral)
+          } |> Literal)
+        ("fun (x: int, y: int) -> x + y",
+          FunctionLiteral {
+            ParameterList = [
+              { Symbol = "x"
+                TypeSpec = BasicType(IntType(DefaultInt)) }
+              { Symbol = "y"
+                TypeSpec = BasicType(IntType(DefaultInt)) }
+            ]
+            Expr = AddExpr(Expr.Variable "x", Expr.Variable "y") |> MathExpr
+          } |> Literal)
       ]
 
     parserTest
@@ -154,7 +169,7 @@ let doParserTest () =
           {
             FuncName = "main";
             OptTemplateParameterDef = None
-            Parameters = []
+            ParameterList = []
             ReturnType = BasicType(VoidType)
             FuncCode = [
               CallExpr (FunctionCall {
