@@ -2,7 +2,7 @@ namespace TypeC
 
 module AST =
 
-    type TypeCProgram = Code of TopLevelDecl list
+    type TypeCProgram = TopLevelDecl list
 
     and TopLevelDecl =
         | ImportDecl of ImportDecl
@@ -14,7 +14,7 @@ module AST =
 
     and FunctionDef =
         { FuncName: string
-          OptTemplateArgumentDef: TemplateArguments option
+          OptTemplateParameterDef: TemplateParameterList option
           Parameters: ParameterList
           ReturnType: TypeSpec
           FuncCode: Block }
@@ -79,15 +79,15 @@ module AST =
 
     and ADTParameterList = ADTTypeName list
 
-    and TemplateArguments = TemplateArgument list
+    and TemplateParameterList = TemplateParameter list
 
-    and TemplateArgument = Expr
+    and TemplateParameter = GenericParameter of Symbol
 
     and ParameterList = Parameter list
 
     and Parameter =
-        { symbol: Symbol
-          typeSpec: TypeSpec }
+        { Symbol: Symbol
+          TypeSpec: TypeSpec }
 
     and Block = Expr list
 
@@ -96,13 +96,44 @@ module AST =
     and TypeSpec =
         | ArrowType of TypeSpec * TypeSpec
         | BasicType of BasicType
-        | UserDefinedType of Symbol
+        | UserDefinedType of UserDefinedType
 
-    and BasicType = IntType of IntType
+    and BasicType =
+        | IntType of IntType
+        | UIntType of UIntType
+        | ListType of ListType
+        | ArrayType of ArrayType
+        | StringType
+        | VoidType
 
     and IntType =
-        | SizedInt of int64
+        | SizedInt of SizedInt
         | DefaultInt
+
+    and SizedInt =
+        | Int8
+        | Int16
+        | Int32
+        | Int64
+
+    and UIntType =
+        | SizedUInt of SizedUInt
+        | DefaultUInt
+
+    and SizedUInt =
+        | UInt8
+        | UInt16
+        | UInt32
+        | UInt64
+
+    and ListType =
+        { TypeSpec: TypeSpec }
+
+    and ArrayType =
+        { TypeSpec: TypeSpec
+          ArraySize: uint64 }
+
+    and UserDefinedType = Symbol
 
     and Expr =
         | ReturnExpr of Expr
@@ -121,10 +152,10 @@ module AST =
         | LetImmExpr of LetExprRecord
 
     and LetExprRecord =
-        { symbol: Symbol
-          typeSpec: TypeSpec option
-          value: Expr
-          expr: Expr }
+        { Symbol: Symbol
+          TypeSpec: TypeSpec option
+          Value: Expr
+          Expr: Expr }
 
     and IfExpr =
         | IfThen of Expr * Expr
@@ -148,7 +179,7 @@ module AST =
 
     and TemplateFunctionCall =
         { FuncName: Symbol
-          TemplateArguments: TemplateArguments
+          TemplateParameterList: TemplateParameterList
           FunctionCallArguments: FunctionCallArguments }
 
     and FunctionCall =
@@ -168,5 +199,8 @@ module AST =
     and Variable = string
 
     and Literal =
-        | InetegerLiteral of int64
+        | IntegerLiteral of int64
         | StringLiteral of string
+        | VoidLiteral
+        | ListLiteral of Expr list
+        | ArrayLiteral of Expr list

@@ -1,0 +1,3 @@
+fn square<N>(x: N) : N {
+  x * x
+}
