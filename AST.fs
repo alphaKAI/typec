@@ -144,6 +144,7 @@ module AST =
         | LoopExpr of LoopExpr
         | CallExpr of CallExpr
         | MathExpr of MathExpr
+        | LogicExpr of LogicExpr
         | Variable of Variable
         | Literal of Literal
 
@@ -193,6 +194,12 @@ module AST =
         | DivExpr of Expr * Expr
         | ModExpr of Expr * Expr
         | PowerExpr of Expr * Expr
+
+    and LogicExpr =
+        | AndExpr of Expr * Expr
+        | OrExpr of Expr * Expr
+        | XorExpr of Expr * Expr
+        | NotExpr of Expr
 
     and FunctionCallArguments = Expr list
 

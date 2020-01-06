@@ -119,18 +119,18 @@ module Parser =
                 { FuncName = funcName
                   FunctionCallArguments = args }))
 
-    let parseMathExpr =
+    let parseBinaryOperatorExpr =
         let opp = new OperatorPrecedenceParser<Expr, unit, unit>()
-
         opp.TermParser <-
             (choice
                 [ attempt parseCallExpr
                   attempt parseVariable
                   attempt parseLiteral ])
             <|> (between (parseString "(") (parseString ")") parseExpr)
-
         opp.AddOperator(InfixOperator("+", ws, 1, Associativity.Left, (fun x y -> AddExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("-", ws, 1, Associativity.Left, (fun x y -> SubExpr(x, y) |> MathExpr)))
+        opp.AddOperator(InfixOperator("&&", ws, 1, Associativity.Left, (fun x y -> AndExpr(x, y) |> LogicExpr)))
+        opp.AddOperator(InfixOperator("||", ws, 1, Associativity.Left, (fun x y -> OrExpr(x, y) |> LogicExpr)))
         opp.AddOperator(InfixOperator("*", ws, 2, Associativity.Left, (fun x y -> MulExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("/", ws, 2, Associativity.Left, (fun x y -> DivExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("%", ws, 2, Associativity.Left, (fun x y -> ModExpr(x, y) |> MathExpr)))
@@ -141,6 +141,7 @@ module Parser =
                      match x with
                      | Literal(IntegerLiteral(v)) -> IntegerLiteral(-v) |> Literal
                      | _ -> MulExpr(Literal(IntegerLiteral(-1L)), x) |> MathExpr)))
+        opp.AddOperator(PrefixOperator("!", ws, 4, true, NotExpr >> LogicExpr))
         opp.ExpressionParser
 
     let parseBlock: Parser<Expr list, unit> =
@@ -148,7 +149,7 @@ module Parser =
 
     parseExprR := choice
                       [ attempt parseReturnExpr
-                        attempt parseMathExpr
+                        attempt parseBinaryOperatorExpr
                         attempt parseCallExpr
                         attempt parseVariable
                         parseLiteral ]

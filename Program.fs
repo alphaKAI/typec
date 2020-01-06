@@ -74,7 +74,7 @@ let doParserTest () =
         ("1234", Literal(IntegerLiteral 1234L))
         ("\"Hello, world!\"", Literal(StringLiteral "Hello, world!"))
         ("()", VoidLiteral |> Literal)
-        ("[||]]", ArrayLiteral([]) |> Literal)
+        ("[||]", ArrayLiteral([]) |> Literal)
         ("[|1, 2, 3|]", ArrayLiteral([
           IntegerLiteral(1L) |> Literal
           IntegerLiteral(2L) |> Literal
@@ -112,8 +112,8 @@ let doParserTest () =
       ]
 
     parserTest
-      "MathExpr"
-      Parser.parseMathExpr
+      "BinaryOperatorExpr"
+      Parser.parseBinaryOperatorExpr
       [
         ("1 + 2", AddExpr(Literal(IntegerLiteral(1L)), Literal(IntegerLiteral(2L))) |> MathExpr)
         ("1 - 2", SubExpr(Literal(IntegerLiteral(1L)), Literal(IntegerLiteral(2L))) |> MathExpr)
@@ -126,6 +126,17 @@ let doParserTest () =
               Literal(IntegerLiteral(1L)),
               AddExpr(Literal(IntegerLiteral(2L)), Literal(IntegerLiteral(6L))) |> MathExpr) |> MathExpr,
             SubExpr(Literal(IntegerLiteral(10L)), Literal(IntegerLiteral(6L))) |> MathExpr) |> MathExpr)
+    
+        ("a && b", AndExpr(Expr.Variable "a", Expr.Variable "b") |> LogicExpr)
+        ("a || b", OrExpr(Expr.Variable "a", Expr.Variable "b") |> LogicExpr)
+        ("!a", NotExpr(Expr.Variable "a") |> LogicExpr)
+        ("!(a && b)", NotExpr(AndExpr(Expr.Variable "a", Expr.Variable "b") |> LogicExpr) |> LogicExpr)
+        ("!(!a || b)", NotExpr(OrExpr(NotExpr (Expr.Variable "a") |> LogicExpr, Expr.Variable "b") |> LogicExpr) |> LogicExpr)
+        ("(a && b) || (c && !d)",
+          OrExpr(
+            AndExpr(Expr.Variable "a", Expr.Variable "b") |> LogicExpr,
+            AndExpr(Expr.Variable "c", NotExpr (Expr.Variable "d") |> LogicExpr) |> LogicExpr
+          ) |> LogicExpr)
       ]
 
     parserTest
