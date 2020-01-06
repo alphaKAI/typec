@@ -22,7 +22,7 @@ let doParserTest () =
     parserTest
       "ImportDecl"
       Parser.parseImportDecl
-      [("import std.stdio;", ImportModulePath ["std"; "stdio"]); ("  import std.net.curl; ", ImportModulePath ["std"; "net"; "curl"])]
+      [("import std.stdio;", ImportModulePath ["std"; "stdio"] |> ImportDecl); ("  import std.net.curl; ", ImportModulePath ["std"; "net"; "curl"] |> ImportDecl)]
 
     parserTest
       "TypeSpec"
@@ -112,6 +112,108 @@ let doParserTest () =
       ]
 
     parserTest
+      "LetExpr"
+      Parser.parseLetExpr
+      [
+        ("let x = 10 in x", LetExpr <| LetImmExpr {
+          Symbol = "x"
+          TypeSpec = None
+          Value = Literal(IntegerLiteral(10L))
+          Expr = Expr.Variable "x"
+        })
+        ("let x = 10 in x * x", LetExpr <| LetImmExpr {
+          Symbol = "x"
+          TypeSpec = None
+          Value = Literal(IntegerLiteral(10L))
+          Expr = MathExpr <| MulExpr(Expr.Variable "x", Expr.Variable "x")
+        })
+        ("let x = \"Hello, world\" in printfln(\"%s\", x)", LetExpr <| LetImmExpr {
+          Symbol = "x"
+          TypeSpec = None
+          Value = Literal(StringLiteral("Hello, world"))
+          Expr = CallExpr (FunctionCall {
+            FuncName = "printfln"
+            FunctionCallArguments = [
+              Literal(StringLiteral("%s"))
+              Expr.Variable "x"
+            ]
+          })
+        })
+        ("let x: int = 10 in x", LetExpr <| LetImmExpr {
+          Symbol = "x"
+          TypeSpec = Some (BasicType (IntType (DefaultInt)))
+          Value = Literal(IntegerLiteral(10L))
+          Expr = Expr.Variable "x"
+        })
+        ("let x: int = 10 in x * x", LetExpr <| LetImmExpr {
+          Symbol = "x"
+          TypeSpec = Some (BasicType (IntType (DefaultInt)))
+          Value = Literal(IntegerLiteral(10L))
+          Expr = MathExpr <| MulExpr(Expr.Variable "x", Expr.Variable "x")
+        })
+        ("let x: string = \"Hello, world\" in printfln(\"%s\", x)", LetExpr <| LetImmExpr {
+          Symbol = "x"
+          TypeSpec = Some (BasicType(StringType))
+          Value = Literal(StringLiteral("Hello, world"))
+          Expr = CallExpr (FunctionCall {
+            FuncName = "printfln"
+            FunctionCallArguments = [
+              Literal(StringLiteral("%s"))
+              Expr.Variable "x"
+            ]
+          })
+        })
+        ("let mut x = 10 in x", LetExpr <| LetMutExpr {
+          Symbol = "x"
+          TypeSpec = None
+          Value = Literal(IntegerLiteral(10L))
+          Expr = Expr.Variable "x"
+        })
+        ("let mut x = 10 in x * x", LetExpr <| LetMutExpr {
+          Symbol = "x"
+          TypeSpec = None
+          Value = Literal(IntegerLiteral(10L))
+          Expr = MathExpr <| MulExpr(Expr.Variable "x", Expr.Variable "x")
+        })
+        ("let mut x = \"Hello, world\" in printfln(\"%s\", x)", LetExpr <| LetMutExpr {
+          Symbol = "x"
+          TypeSpec = None
+          Value = Literal(StringLiteral("Hello, world"))
+          Expr = CallExpr (FunctionCall {
+            FuncName = "printfln"
+            FunctionCallArguments = [
+              Literal(StringLiteral("%s"))
+              Expr.Variable "x"
+            ]
+          })
+        })
+        ("let mut x: int = 10 in x", LetExpr <| LetMutExpr {
+          Symbol = "x"
+          TypeSpec = Some(BasicType(IntType(DefaultInt)))
+          Value = Literal(IntegerLiteral(10L))
+          Expr = Expr.Variable "x"
+        })
+        ("let mut x: int = 10 in x * x", LetExpr <| LetMutExpr {
+          Symbol = "x"
+          TypeSpec = Some(BasicType(IntType(DefaultInt)))
+          Value = Literal(IntegerLiteral(10L))
+          Expr = MathExpr <| MulExpr(Expr.Variable "x", Expr.Variable "x")
+        })
+        ("let mut x: string = \"Hello, world\" in printfln(\"%s\", x)", LetExpr <| LetMutExpr {
+          Symbol = "x"
+          TypeSpec = Some(BasicType(StringType))
+          Value = Literal(StringLiteral("Hello, world"))
+          Expr = CallExpr (FunctionCall {
+            FuncName = "printfln"
+            FunctionCallArguments = [
+              Literal(StringLiteral("%s"))
+              Expr.Variable "x"
+            ]
+          })
+        })
+      ]
+
+    parserTest
       "BinaryOperatorExpr"
       Parser.parseBinaryOperatorExpr
       [
@@ -190,7 +292,7 @@ let doParserTest () =
       Parser.parseFunctionDef
       [
         ("fn main(): void { println(\"Hello, world\") }",
-          {
+          FunctionDef {
             FuncName = "main";
             OptTemplateParameterDef = None
             ParameterList = []
@@ -221,4 +323,5 @@ let main argv =
     doParserTest ()
     testParseFile "./examples/helloworld.tc" Parser.parseTopLevel
     testParseFile "./examples/template_func.tc" Parser.parseTopLevel
+    testParseFile "./examples/let.tc" Parser.parseTopLevel
     0 // return an integer exit code

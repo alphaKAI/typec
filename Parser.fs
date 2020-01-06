@@ -20,10 +20,10 @@ module Parser =
     let parseString sym = ws >>. pstring sym .>> ws
     let parseChar chr = ws >>. pchar chr .>> ws
 
-    let parseImportDecl: Parser<ImportDecl, unit> =
+    let parseImportDecl =
         sepBy ident (parseChar '.')
         |> between (parseString "import") (parseChar ';')
-        |>> ImportModulePath
+        |>> ImportModulePath |>> ImportDecl
 
     let parseDefaultIntType = parseString "int" |>> fun _ -> BasicType(IntType(DefaultInt))
     let parseDefaultUIntType = parseString "uint" |>> fun _ -> BasicType(UIntType(DefaultUInt))
@@ -66,7 +66,6 @@ module Parser =
     let parseParameterList =
         sepBy parseParameter (parseChar ',') |> between (ws .>> parseChar '(' .>> ws) (ws .>> parseChar ')' .>> ws)
 
-    let parseExpr, parseExprR = createParserForwardedToRef()
 
     let parseTemplateParameter =
         let parseGenericParameter = parseSymbol |>> GenericParameter
@@ -75,8 +74,30 @@ module Parser =
     let parseTemplateParameterList =
         sepBy parseTemplateParameter (parseChar ',') |> between (parseChar '<') (parseChar '>')
 
+    let parseExpr, parseExprR = createParserForwardedToRef()
 
     let parseReturnExpr = parseString "return" >>. parseExpr |>> ReturnExpr
+
+    let parseLetExpr =
+        let parseLetMutExpr =
+            ((parseString "let" .>> parseString "mut" >>. parseSymbol .>>. opt parseTypeAnnotation) .>>. (parseChar '=' >>. parseExpr)) .>>. (parseString "in" >>. parseExpr)
+            |>> (fun (((sym, typeSpec), value), expr) ->
+                LetExpr <| LetMutExpr {
+                    Symbol = sym
+                    TypeSpec = typeSpec
+                    Value = value
+                    Expr = expr
+                })
+        let parseLetImmExpr =
+            ((parseString "let" >>. parseSymbol .>>. opt parseTypeAnnotation) .>>. (parseChar '=' >>. parseExpr)) .>>. (parseString "in" >>. parseExpr)
+            |>> (fun (((sym, typeSpec), value), expr) ->
+                LetExpr <| LetImmExpr {
+                    Symbol = sym
+                    TypeSpec = typeSpec
+                    Value = value
+                    Expr = expr
+                })
+        attempt parseLetMutExpr <|> parseLetImmExpr
 
     // Parser for Literal
     let parseIntLiteral: Parser<Literal, unit> = pint64 |>> IntegerLiteral
@@ -155,36 +176,64 @@ module Parser =
 
     parseExprR := choice
                       [ attempt parseReturnExpr
+                        attempt parseLetExpr
                         attempt parseBinaryOperatorExpr
                         attempt parseCallExpr
                         attempt parseVariable
                         parseLiteral ]
                   .>> opt (parseString ";")
 
-    let parseFunctionDef: Parser<FunctionDef, unit> =
+    let parseFunctionDef =
         let parseTemplateFunctionDef =
             parseString "fn" >>. parseSymbol .>>. parseTemplateParameterList .>>. parseParameterList
             .>>. parseTypeAnnotation .>>. parseBlock
             |>> (fun ((((funcName, templateParameterList), parameterList), retType), block) ->
-                { FuncName = funcName
-                  OptTemplateParameterDef = Some templateParameterList
-                  ParameterList = parameterList
-                  ReturnType = retType
-                  FuncCode = block })
+                FunctionDef
+                    { FuncName = funcName
+                      OptTemplateParameterDef = Some templateParameterList
+                      ParameterList = parameterList
+                      ReturnType = retType
+                      FuncCode = block })
 
         let parseNomalFunctionDef =
             parseString "fn" >>. parseSymbol .>>. parseParameterList .>>. parseTypeAnnotation .>>. parseBlock
             |>> (fun (((funcName, parameterList), retType), block) ->
-                { FuncName = funcName
-                  OptTemplateParameterDef = None
-                  ParameterList = parameterList
-                  ReturnType = retType
-                  FuncCode = block })
+                 FunctionDef
+                    { FuncName = funcName
+                      OptTemplateParameterDef = None
+                      ParameterList = parameterList
+                      ReturnType = retType
+                      FuncCode = block })
 
         attempt parseTemplateFunctionDef <|> parseNomalFunctionDef
 
+    let parseGlobalLetDef =
+        let parseLetMutDef =
+            (parseString "let" .>> parseString "mut" >>. parseSymbol .>>. opt parseTypeAnnotation) .>>. (parseChar '=' >>. parseExpr)
+            |>> (fun ((sym, typeSpec), value)->
+                LetMutDef {
+                    Symbol = sym
+                    TypeSpec = typeSpec
+                    Value = value
+                } |> GlobalLetDef)
+        let parseLetImmDef =
+            (parseString "let" >>. parseSymbol .>>. opt parseTypeAnnotation) .>>. (parseChar '=' >>. parseExpr)
+            |>> (fun ((sym, typeSpec), value) ->
+                LetImmDef {
+                    Symbol = sym
+                    TypeSpec = typeSpec
+                    Value = value
+                } |> GlobalLetDef)
+        attempt parseLetMutDef <|> parseLetImmDef
+
     let parseTopLevel =
-        many1 (ws >>. (attempt (parseImportDecl |>> ImportDecl) <|> (parseFunctionDef |>> FunctionDef)) .>> ws)
+        //many1 (ws >>. (attempt (parseImportDecl |>> ImportDecl) <|> (parseFunctionDef |>> FunctionDef)) .>> ws)
+
+        many1 (choice [
+            parseImportDecl
+            parseGlobalLetDef
+            parseFunctionDef
+        ] |> between ws ws)
 
     let parseBy p str =
         // run関数はFParsecが用意している、パーサーを実行するための関数

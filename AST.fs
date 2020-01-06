@@ -19,7 +19,14 @@ module AST =
           ReturnType: TypeSpec
           FuncCode: Block }
 
-    and GlobalLetDef = LetExpr
+    and GlobalLetDef =
+        | LetMutDef of LetDef
+        | LetImmDef of LetDef
+
+    and LetDef =
+        { Symbol: Symbol
+          TypeSpec: TypeSpec option
+          Value: Expr }
 
     and TypeDef =
         | RecordTypeDecl of RecordTypeDecl
