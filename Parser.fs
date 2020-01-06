@@ -45,7 +45,7 @@ module Parser =
         let parseOtherType = parseBasicType <|> parseUserDefinedType
         let opp = new OperatorPrecedenceParser<TypeSpec, unit, unit>()
 
-        opp.TermParser <- parseOtherType <|> (parseType |> between (parseString "(") (parseString ")"))
+        opp.TermParser <- parseOtherType <|> (parseType |> between (parseChar '(') (parseChar ')'))
         opp.AddOperator(InfixOperator("->", ws, 1, Associativity.Right, (fun x y -> ArrowType(x, y))))
         opp.ExpressionParser
 
@@ -56,10 +56,10 @@ module Parser =
 
     let parseTypeSpec = parseType
 
-    let parseTypeAnnotation = parseString ":" >>. parseTypeSpec
+    let parseTypeAnnotation = parseChar ':' >>. parseTypeSpec
 
     let parseParameter =
-        parseSymbol .>> parseString ":" .>>. parseTypeSpec |>> (fun (symbol, typeSpec) ->
+        parseSymbol .>> parseChar ':' .>>. parseTypeSpec |>> (fun (symbol, typeSpec) ->
         { Symbol = symbol
           TypeSpec = typeSpec })
 
@@ -170,7 +170,7 @@ module Parser =
                 [ attempt parseCallExpr
                   attempt parseVariable
                   attempt parseLiteral ])
-            <|> (between (parseString "(") (parseString ")") parseExpr)
+            <|> (between (parseChar '(') (parseChar ')') parseExpr)
         opp.AddOperator(InfixOperator("+", ws, 1, Associativity.Left, (fun x y -> AddExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("-", ws, 1, Associativity.Left, (fun x y -> SubExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("&&", ws, 1, Associativity.Left, (fun x y -> AndExpr(x, y) |> LogicExpr)))
@@ -210,7 +210,7 @@ module Parser =
                         attempt parseCallExpr
                         attempt parseVariable
                         parseLiteral ]
-                  .>> opt (parseString ";")
+                  .>> opt (parseChar ';')
 
     let parseFunctionDef =
         let parseTemplateFunctionDef =
