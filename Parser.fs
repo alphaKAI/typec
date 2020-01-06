@@ -76,6 +76,9 @@ module Parser =
 
     let parseExpr, parseExprR = createParserForwardedToRef()
 
+    let parseBlock: Parser<Expr list, unit> =
+        ws >>. many parseExpr .>> ws |> between (parseChar '{') (parseChar '}')
+
     let parseReturnExpr = parseString "return" >>. parseExpr |>> ReturnExpr
 
     let parseLetExpr =
@@ -107,6 +110,17 @@ module Parser =
                 TrueExpr = trueExpr
                 FalseExpr = falseExpr
             })
+
+    let parseForExpr =
+        (((parseString "for" >>. parseSymbol) .>> parseChar '=') .>>. parseExpr) .>>. (parseString "to" >>. parseExpr) .>>. parseBlock
+        |>> (fun (((sym, begin'), end'), block) -> 
+            ForExpr {
+                Symbol = sym
+                Begin = begin'
+                End = end'
+                Block = block
+            })
+
 
     // Parser for Literal
     let parseIntLiteral: Parser<Literal, unit> = pint64 |>> IntegerLiteral
@@ -186,13 +200,12 @@ module Parser =
         opp.AddOperator(PrefixOperator("~", ws, 4, true, LNotExpr >> BitwiseExpr))
         opp.ExpressionParser
 
-    let parseBlock: Parser<Expr list, unit> =
-        ws >>. many parseExpr .>> ws |> between (parseChar '{') (parseChar '}')
 
     parseExprR := choice
                       [ attempt parseReturnExpr
                         attempt parseLetExpr
                         attempt parseIfExpr
+                        attempt parseForExpr
                         attempt parseBinaryOperatorExpr
                         attempt parseCallExpr
                         attempt parseVariable

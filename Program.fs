@@ -228,6 +228,28 @@ let doParserTest () =
           FalseExpr = None
         })
       ]
+    
+    parserTest
+      "ForExpr"
+      Parser.parseForExpr
+      [
+        ("for i = 0 to 10 { printfln(\"i = %d\", i) }",
+          ForExpr {
+            Symbol = "i"
+            Begin = Literal(IntegerLiteral(0L))
+            End = Literal(IntegerLiteral(10L))
+            Block = [
+                CallExpr (FunctionCall {
+                FuncName = "printfln"
+                FunctionCallArguments = [
+                  Literal(StringLiteral("i = %d"))
+                  Expr.Variable "i"
+                ]
+              })
+            ]
+          }
+        )
+      ]
 
     parserTest
       "BinaryOperatorExpr"

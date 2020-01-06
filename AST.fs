@@ -173,9 +173,10 @@ module AST =
           FalseExpr: Expr option }
 
     and ForExpr =
-        { Begin: Expr
+        { Symbol: Symbol
+          Begin: Expr
           End: Expr
-          ForCode: Expr }
+          Block: Block }
 
     and WhileExpr =
         { Condition: Expr
