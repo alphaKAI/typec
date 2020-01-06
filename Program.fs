@@ -371,4 +371,5 @@ let main argv =
     testParseFile "./examples/template_func.tc" Parser.parseTopLevel
     testParseFile "./examples/let.tc" Parser.parseTopLevel
     testParseFile "./examples/if.tc" Parser.parseTopLevel
+    testParseFile "./examples/for.tc" Parser.parseTopLevel
     0 // return an integer exit code
