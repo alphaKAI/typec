@@ -131,6 +131,11 @@ module Parser =
         opp.AddOperator(InfixOperator("-", ws, 1, Associativity.Left, (fun x y -> SubExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("&&", ws, 1, Associativity.Left, (fun x y -> AndExpr(x, y) |> LogicExpr)))
         opp.AddOperator(InfixOperator("||", ws, 1, Associativity.Left, (fun x y -> OrExpr(x, y) |> LogicExpr)))
+        opp.AddOperator(InfixOperator("&", ws, 1, Associativity.Left, (fun x y -> LAndExpr(x, y) |> BitwiseExpr)))
+        opp.AddOperator(InfixOperator("|", ws, 1, Associativity.Left, (fun x y -> LOrExpr(x, y) |> BitwiseExpr)))
+        opp.AddOperator(InfixOperator("^", ws, 1, Associativity.Left, (fun x y -> LXorExpr(x, y) |> BitwiseExpr)))
+        opp.AddOperator(InfixOperator("<<", ws, 1, Associativity.Left, (fun x y -> LLeftShift(x, y) |> BitwiseExpr)))
+        opp.AddOperator(InfixOperator(">>", ws, 1, Associativity.Left, (fun x y -> LRightShift(x, y) |> BitwiseExpr)))
         opp.AddOperator(InfixOperator("*", ws, 2, Associativity.Left, (fun x y -> MulExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("/", ws, 2, Associativity.Left, (fun x y -> DivExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("%", ws, 2, Associativity.Left, (fun x y -> ModExpr(x, y) |> MathExpr)))
@@ -142,6 +147,7 @@ module Parser =
                      | Literal(IntegerLiteral(v)) -> IntegerLiteral(-v) |> Literal
                      | _ -> MulExpr(Literal(IntegerLiteral(-1L)), x) |> MathExpr)))
         opp.AddOperator(PrefixOperator("!", ws, 4, true, NotExpr >> LogicExpr))
+        opp.AddOperator(PrefixOperator("~", ws, 4, true, LNotExpr >> BitwiseExpr))
         opp.ExpressionParser
 
     let parseBlock: Parser<Expr list, unit> =

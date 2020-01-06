@@ -137,6 +137,19 @@ let doParserTest () =
             AndExpr(Expr.Variable "a", Expr.Variable "b") |> LogicExpr,
             AndExpr(Expr.Variable "c", NotExpr (Expr.Variable "d") |> LogicExpr) |> LogicExpr
           ) |> LogicExpr)
+
+        ("a & b", LAndExpr(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr)
+        ("a | b", LOrExpr(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr)
+        ("a << b", LLeftShift(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr)
+        ("a >> b", LRightShift(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr)
+        ("~a", LNotExpr(Expr.Variable "a") |> BitwiseExpr)
+        ("~(a & b)", LNotExpr(LAndExpr(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr) |> BitwiseExpr)
+        ("~(~a | b)", LNotExpr(LOrExpr(LNotExpr (Expr.Variable "a") |> BitwiseExpr, Expr.Variable "b") |> BitwiseExpr) |> BitwiseExpr)
+        ("(a & b) | (c & ~d)",
+          LOrExpr(
+            LAndExpr(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr,
+            LAndExpr(Expr.Variable "c", LNotExpr (Expr.Variable "d") |> BitwiseExpr) |> BitwiseExpr
+          ) |> BitwiseExpr)
       ]
 
     parserTest

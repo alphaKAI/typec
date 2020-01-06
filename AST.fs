@@ -145,6 +145,7 @@ module AST =
         | CallExpr of CallExpr
         | MathExpr of MathExpr
         | LogicExpr of LogicExpr
+        | BitwiseExpr of BitwiseExpr
         | Variable of Variable
         | Literal of Literal
 
@@ -200,6 +201,14 @@ module AST =
         | OrExpr of Expr * Expr
         | XorExpr of Expr * Expr
         | NotExpr of Expr
+
+    and BitwiseExpr =
+        | LAndExpr of Expr * Expr
+        | LOrExpr of Expr * Expr
+        | LXorExpr of Expr * Expr
+        | LNotExpr of Expr
+        | LLeftShift of Expr * Expr
+        | LRightShift of Expr * Expr
 
     and FunctionCallArguments = Expr list
 
