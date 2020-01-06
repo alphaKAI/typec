@@ -192,6 +192,7 @@ module Parser =
     parseExprR := choice
                       [ attempt parseReturnExpr
                         attempt parseLetExpr
+                        attempt parseIfExpr
                         attempt parseBinaryOperatorExpr
                         attempt parseCallExpr
                         attempt parseVariable

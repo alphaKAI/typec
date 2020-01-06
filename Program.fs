@@ -217,6 +217,16 @@ let doParserTest () =
       "IfExpr"
       Parser.parseIfExpr
       [
+        ("if a == 1 then println(\"a == 1\")", IfExpr {
+          Cond = CompareExpr(EqualExpr(Expr.Variable "a", Literal(IntegerLiteral(1L))))
+          TrueExpr = CallExpr (FunctionCall {
+            FuncName = "println"
+            FunctionCallArguments = [
+              Literal(StringLiteral("a == 1"))
+            ]
+          })
+          FalseExpr = None
+        })
       ]
 
     parserTest
@@ -338,4 +348,5 @@ let main argv =
     testParseFile "./examples/helloworld.tc" Parser.parseTopLevel
     testParseFile "./examples/template_func.tc" Parser.parseTopLevel
     testParseFile "./examples/let.tc" Parser.parseTopLevel
+    testParseFile "./examples/if.tc" Parser.parseTopLevel
     0 // return an integer exit code
