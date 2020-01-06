@@ -99,6 +99,15 @@ module Parser =
                 })
         attempt parseLetMutExpr <|> parseLetImmExpr
 
+    let parseIfExpr =   
+        (parseString "if" >>. parseExpr) .>>. (parseString "then" >>. parseExpr) .>>. opt (parseString "else" >>. parseExpr)
+        |>> (fun ((cond, trueExpr), falseExpr) ->
+            IfExpr {
+                Cond = cond
+                TrueExpr = trueExpr
+                FalseExpr = falseExpr
+            })
+
     // Parser for Literal
     let parseIntLiteral: Parser<Literal, unit> = pint64 |>> IntegerLiteral
     let parseStringLiteral: Parser<Literal, unit> =
@@ -157,6 +166,12 @@ module Parser =
         opp.AddOperator(InfixOperator("^", ws, 1, Associativity.Left, (fun x y -> LXorExpr(x, y) |> BitwiseExpr)))
         opp.AddOperator(InfixOperator("<<", ws, 1, Associativity.Left, (fun x y -> LLeftShift(x, y) |> BitwiseExpr)))
         opp.AddOperator(InfixOperator(">>", ws, 1, Associativity.Left, (fun x y -> LRightShift(x, y) |> BitwiseExpr)))
+        opp.AddOperator(InfixOperator("==", ws, 1, Associativity.Left, (fun x y -> EqualExpr(x, y) |> CompareExpr)))
+        opp.AddOperator(InfixOperator("!=", ws, 1, Associativity.Left, (fun x y -> NotEqualExpr(x, y) |> CompareExpr)))
+        opp.AddOperator(InfixOperator("<", ws, 1, Associativity.Left, (fun x y -> LessExpr(x, y) |> CompareExpr)))
+        opp.AddOperator(InfixOperator(">", ws, 1, Associativity.Left, (fun x y -> GreaterExpr(x, y) |> CompareExpr)))
+        opp.AddOperator(InfixOperator("<=", ws, 1, Associativity.Left, (fun x y -> LessThanExpr(x, y) |> CompareExpr)))
+        opp.AddOperator(InfixOperator(">=", ws, 1, Associativity.Left, (fun x y -> GreaterThanExpr(x, y) |> CompareExpr)))
         opp.AddOperator(InfixOperator("*", ws, 2, Associativity.Left, (fun x y -> MulExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("/", ws, 2, Associativity.Left, (fun x y -> DivExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("%", ws, 2, Associativity.Left, (fun x y -> ModExpr(x, y) |> MathExpr)))

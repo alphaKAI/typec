@@ -152,6 +152,7 @@ module AST =
         | CallExpr of CallExpr
         | MathExpr of MathExpr
         | LogicExpr of LogicExpr
+        | CompareExpr of CompareExpr
         | BitwiseExpr of BitwiseExpr
         | Variable of Variable
         | Literal of Literal
@@ -167,8 +168,9 @@ module AST =
           Expr: Expr }
 
     and IfExpr =
-        | IfThen of Expr * Expr
-        | IfThenElse of Expr * Expr * Expr
+        { Cond: Expr
+          TrueExpr: Expr
+          FalseExpr: Expr option }
 
     and ForExpr =
         { Begin: Expr
@@ -216,6 +218,14 @@ module AST =
         | LNotExpr of Expr
         | LLeftShift of Expr * Expr
         | LRightShift of Expr * Expr
+
+    and CompareExpr =
+        | EqualExpr of Expr * Expr
+        | NotEqualExpr of Expr * Expr
+        | LessExpr of Expr * Expr
+        | GreaterExpr of Expr * Expr
+        | LessThanExpr of Expr * Expr
+        | GreaterThanExpr of Expr * Expr
 
     and FunctionCallArguments = Expr list
 
