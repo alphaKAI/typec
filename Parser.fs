@@ -256,8 +256,6 @@ module Parser =
         attempt parseLetMutDef <|> parseLetImmDef
 
     let parseTopLevel =
-        //many1 (ws >>. (attempt (parseImportDecl |>> ImportDecl) <|> (parseFunctionDef |>> FunctionDef)) .>> ws)
-
         many1 (choice [
             parseImportDecl
             parseGlobalLetDef
