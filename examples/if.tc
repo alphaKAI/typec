@@ -1,0 +1,13 @@
+import std.stdio;
+
+let x = 10;
+let y = if x == 10 then 2 else 1
+
+fn main(): int {
+  if y == 2 then
+    println("x == 10")
+  else
+    println("x != 10")
+
+  0
+}

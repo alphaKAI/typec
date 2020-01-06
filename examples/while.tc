@@ -1,0 +1,7 @@
+import std.stdio;
+
+fn main(): void {
+  while true {
+    println("Loop forever");
+  }
+}

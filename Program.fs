@@ -250,6 +250,25 @@ let doParserTest () =
           }
         )
       ]
+      
+    parserTest
+      "WhileExpr"
+      Parser.parseWhileExpr
+      [
+        ("while some_cond { printfln(\"Loop\") }",
+          WhileExpr {
+            Cond = Expr.Variable "some_cond"
+            Block = [
+                CallExpr (FunctionCall {
+                FuncName = "printfln"
+                FunctionCallArguments = [
+                  Literal(StringLiteral("Loop"))
+                ]
+              })
+            ]
+          }
+        )
+      ]
 
     parserTest
       "BinaryOperatorExpr"
@@ -372,4 +391,5 @@ let main argv =
     testParseFile "./examples/let.tc" Parser.parseTopLevel
     testParseFile "./examples/if.tc" Parser.parseTopLevel
     testParseFile "./examples/for.tc" Parser.parseTopLevel
+    testParseFile "./examples/while.tc" Parser.parseTopLevel
     0 // return an integer exit code

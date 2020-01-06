@@ -10,11 +10,18 @@ module Parser =
     let isAsciiIdStart c = isAsciiLetter c
     let isAsciiIdContinue c = isAsciiLetter c || isDigit c
 
+    (*
     let identOpts =
         IdentifierOptions
             (isAsciiIdStart = isAsciiIdStart, isAsciiIdContinue = isAsciiIdContinue,
              normalization = NormalizationForm.FormKC, normalizeBeforeValidation = true)
     let ident = identifier identOpts
+    *)
+
+    let ident =
+        let isIdentifierFirstChar c = isLetter c || c = '_'
+        let isIdentifierChar c = isLetter c || isDigit c || c = '_'
+        many1Satisfy2 isIdentifierFirstChar isIdentifierChar
 
     let parseSymbol = ws >>. ident .>> ws
     let parseString sym = ws >>. pstring sym .>> ws
@@ -121,6 +128,13 @@ module Parser =
                 Block = block
             })
 
+    let parseWhileExpr =
+        (parseString "while" >>. parseExpr) .>>. parseBlock
+        |>> (fun (cond, block) ->
+            WhileExpr {
+                Cond = cond
+                Block = block
+            })
 
     // Parser for Literal
     let parseIntLiteral: Parser<Literal, unit> = pint64 |>> IntegerLiteral
@@ -207,6 +221,7 @@ module Parser =
                         attempt parseLetExpr
                         attempt parseIfExpr
                         attempt parseForExpr
+                        attempt parseWhileExpr
                         attempt parseBinaryOperatorExpr
                         attempt parseCallExpr
                         attempt parseVariable

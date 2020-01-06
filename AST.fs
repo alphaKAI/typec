@@ -179,8 +179,8 @@ module AST =
           Block: Block }
 
     and WhileExpr =
-        { Condition: Expr
-          WhileCode: Expr }
+        { Cond: Expr
+          Block: Block }
 
     and LoopExpr =
         { LoopCode: Expr }
