@@ -55,6 +55,24 @@ let doParserTest () =
       ]
 
     parserTest
+      "TypeDef"
+      Parser.parseTypeDef
+      [
+        ("type User = {
+            name: string;
+            age: int;
+          }",
+          TypeDef (RecordTypeDecl {
+                    TypeName = "User";
+                    TypeParameterList = None;
+                    RecordFields = [
+                       { FieldName = "name"; FieldType = BasicType(StringType)}
+                       { FieldName = "age"; FieldType = BasicType(IntType(DefaultInt))}
+                     ]
+                  }))
+      ]
+
+    parserTest
       "ParameterList"
       Parser.parseParameterList
       [
@@ -430,6 +448,7 @@ let main argv =
     testParseFile "./examples/for.tc" Parser.parseTopLevel
     testParseFile "./examples/while.tc" Parser.parseTopLevel
     testParseFile "./examples/controlFlow.tc" Parser.parseTopLevel
+    testParseFile "./examples/struct.tc" Parser.parseTopLevel
 
     printfn "argv: %A" argv
     0 // return an integer exit code

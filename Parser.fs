@@ -303,11 +303,26 @@ module Parser =
                 } |> GlobalLetDef)
         attempt parseLetMutDef <|> parseLetImmDef
 
+    let parseTypeDef =
+        let parseTypeParameter =
+            sepBy parseSymbol (parseChar ',')
+            |> between (parseChar '(') (parseChar ')')
+        let parseRecordTypeDecl =
+            let parseRecordField =
+                (parseSymbol .>> parseChar ':') .>>. (parseType) .>> parseChar ';'
+                |>> fun (fieldName, fieldType) -> { FieldName = fieldName; FieldType = fieldType }
+            (parseString "type" >>. parseSymbol .>>. opt parseTypeParameter .>> parseChar '=') .>>.
+            ((many1 parseRecordField) |> between (parseChar '{') (parseChar '}'))
+            |>> fun ((typeName, typeParameterList), recordFields) ->
+                TypeDef <| RecordTypeDecl { TypeName = typeName; TypeParameterList = typeParameterList; RecordFields = recordFields }
+        parseRecordTypeDecl
+
     let parseTopLevel =
         many1 (choice [
             parseImportDecl
             parseGlobalLetDef
             parseFunctionDef
+            parseTypeDef
         ] |> between ws ws)
 
     let parseBy p str =

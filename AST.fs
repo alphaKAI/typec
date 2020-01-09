@@ -34,6 +34,7 @@ module AST =
 
     and RecordTypeDecl =
         { TypeName: Symbol
+          TypeParameterList: Symbol list option
           RecordFields: RecordField list }
 
     and RecordField =
