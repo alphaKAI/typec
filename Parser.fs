@@ -12,14 +12,6 @@ module Parser =
     let isAsciiIdStart c = isAsciiLetter c
     let isAsciiIdContinue c = isAsciiLetter c || isDigit c
 
-    (*
-    let identOpts =
-        IdentifierOptions
-            (isAsciiIdStart = isAsciiIdStart, isAsciiIdContinue = isAsciiIdContinue,
-             normalization = NormalizationForm.FormKC, normalizeBeforeValidation = true)
-    let ident = identifier identOpts
-    *)
-
     let ident =
         let isIdentifierFirstChar c = isLetter c || c = '_'
         let isIdentifierChar c = isLetter c || isDigit c || c = '_'
@@ -323,17 +315,3 @@ module Parser =
         match run p str with
         | Success(res, _, _) -> res
         | Failure(msg, _, _) -> failwithf "parse error: %s" msg
-
-
-    let example1() =
-        FunctionDef
-            ({ FuncName = "main"
-               OptTemplateParameterDef = None
-               ParameterList = []
-               ReturnType = BasicType(IntType(DefaultInt))
-               FuncCode =
-                   [ CallExpr
-                       (FunctionCall
-                           ({ FuncName = "println"
-                              FunctionCallArguments = [ Literal(StringLiteral("Hello, world")) ] }))
-                     ReturnExpr(Literal(IntegerLiteral(0L))) ] })
