@@ -309,14 +309,18 @@ let doParserTest () =
             LAndExpr(Expr.Variable "a", Expr.Variable "b") |> BitwiseExpr,
             LAndExpr(Expr.Variable "c", LNotExpr (Expr.Variable "d") |> BitwiseExpr) |> BitwiseExpr
           ) |> BitwiseExpr)
- 
+
         ("a == b", EqualExpr(Expr.Variable "a", Expr.Variable "b") |> CompareExpr)
         ("a != b", NotEqualExpr(Expr.Variable "a", Expr.Variable "b") |> CompareExpr)
         ("a < b", LessExpr(Expr.Variable "a", Expr.Variable "b") |> CompareExpr)
         ("a > b", GreaterExpr(Expr.Variable "a", Expr.Variable "b") |> CompareExpr)
         ("a <= b", LessThanExpr(Expr.Variable "a", Expr.Variable "b") |> CompareExpr)
         ("a >= b", GreaterThanExpr(Expr.Variable "a", Expr.Variable "b") |> CompareExpr)
- 
+
+        ("a <- 1", AssignExpr {
+          DstSymbol = "a"
+          SrcExpr = Literal(IntegerLiteral(1L))
+        })
       ]
 
     parserTest

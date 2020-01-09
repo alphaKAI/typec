@@ -6,6 +6,8 @@ module Parser =
     open FParsec
     open AST
 
+    exception ParseException
+
     let ws = spaces
     let isAsciiIdStart c = isAsciiLetter c
     let isAsciiIdContinue c = isAsciiLetter c || isDigit c
@@ -109,7 +111,7 @@ module Parser =
                 })
         attempt parseLetMutExpr <|> parseLetImmExpr
 
-    let parseIfExpr =   
+    let parseIfExpr =
         (parseString "if" >>. parseExpr) .>>. (parseString "then" >>. parseExpr) .>>. opt (parseString "else" >>. parseExpr)
         |>> (fun ((cond, trueExpr), falseExpr) ->
             IfExpr {
@@ -201,6 +203,10 @@ module Parser =
         opp.AddOperator(InfixOperator(">", ws, 1, Associativity.Left, (fun x y -> GreaterExpr(x, y) |> CompareExpr)))
         opp.AddOperator(InfixOperator("<=", ws, 1, Associativity.Left, (fun x y -> LessThanExpr(x, y) |> CompareExpr)))
         opp.AddOperator(InfixOperator(">=", ws, 1, Associativity.Left, (fun x y -> GreaterThanExpr(x, y) |> CompareExpr)))
+        opp.AddOperator(InfixOperator("<-", ws, 1, Associativity.Left, (fun x y ->
+                                                                            match x with
+                                                                            | Expr.Variable(sym) -> AssignExpr { DstSymbol = sym ; SrcExpr = y}
+                                                                            | _ -> raise ParseException)))
         opp.AddOperator(InfixOperator("*", ws, 2, Associativity.Left, (fun x y -> MulExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("/", ws, 2, Associativity.Left, (fun x y -> DivExpr(x, y) |> MathExpr)))
         opp.AddOperator(InfixOperator("%", ws, 2, Associativity.Left, (fun x y -> ModExpr(x, y) |> MathExpr)))

@@ -154,6 +154,7 @@ module AST =
         | LogicExpr of LogicExpr
         | CompareExpr of CompareExpr
         | BitwiseExpr of BitwiseExpr
+        | AssignExpr of AssignExpr
         | Variable of Variable
         | Literal of Literal
 
@@ -227,6 +228,10 @@ module AST =
         | GreaterExpr of Expr * Expr
         | LessThanExpr of Expr * Expr
         | GreaterThanExpr of Expr * Expr
+
+    and AssignExpr =
+        { DstSymbol: Symbol
+          SrcExpr: Expr }
 
     and FunctionCallArguments = Expr list
 
