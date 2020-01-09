@@ -34,6 +34,8 @@ module Parser =
         |> between (parseString "import") (parseChar ';')
         |>> ImportModulePath |>> ImportDecl
 
+    let parseExpr, parseExprR = createParserForwardedToRef()
+
     let parseDefaultIntType = parseString "int" |>> fun _ -> BasicType(IntType(DefaultInt))
     let parseDefaultUIntType = parseString "uint" |>> fun _ -> BasicType(UIntType(DefaultUInt))
     let parseStringType = parseString "string" |>> fun _ -> BasicType(StringType)
@@ -50,18 +52,23 @@ module Parser =
 
     let parseType, parseTypeR = createParserForwardedToRef()
 
+    let parseTemplateParameter =
+        attempt (parseType |>> TTPTypeSpec) <|> (parseExpr |>> TTPExpr)
+    let parseTemplateType =
+        (parseSymbol .>> parseChar '!') .>>.
+        (sepBy parseTemplateParameter (parseChar ',')
+        |> between (parseChar '(') (parseChar ')'))
+        |>> fun (baseTy, tmeplateArgs) -> TemplateType (baseTy, tmeplateArgs)
+
     let parseArrowType =
-        let parseOtherType = parseBasicType <|> parseUserDefinedType
+        let parseOtherType = attempt parseTemplateType <|> parseBasicType <|> parseUserDefinedType 
         let opp = new OperatorPrecedenceParser<TypeSpec, unit, unit>()
 
         opp.TermParser <- parseOtherType <|> (parseType |> between (parseChar '(') (parseChar ')'))
         opp.AddOperator(InfixOperator("->", ws, 1, Associativity.Right, (fun x y -> ArrowType(x, y))))
         opp.ExpressionParser
 
-    parseTypeR := choice
-                      [ attempt parseArrowType
-                        attempt parseBasicType
-                        attempt parseUserDefinedType ]
+    parseTypeR := parseArrowType
 
     let parseTypeSpec = parseType
 
@@ -76,14 +83,8 @@ module Parser =
         sepBy parseParameter (parseChar ',') |> between (ws .>> parseChar '(' .>> ws) (ws .>> parseChar ')' .>> ws)
 
 
-    let parseTemplateParameter =
-        let parseGenericParameter = parseSymbol |>> GenericParameter
-        parseGenericParameter
-
     let parseTemplateParameterList =
         sepBy parseTemplateParameter (parseChar ',') |> between (parseChar '<') (parseChar '>')
-
-    let parseExpr, parseExprR = createParserForwardedToRef()
 
     let parseBlock: Parser<Expr list, unit> =
         ws >>. many parseExpr .>> ws |> between (parseChar '{') (parseChar '}')
@@ -170,15 +171,23 @@ module Parser =
 
 
     let parseCallExpr =
-        // TODO: Template Function Call
+        let parseTemplateFunctionCallParameters =
+            parseChar '!' >>. (sepBy parseTemplateParameter (parseChar ',') |> between (parseChar '(') (parseChar ')'))
         let parseFunctionCallArguments =
             sepBy parseExpr (parseChar ',') |> between (parseString "(") (parseString ")")
+        let parseTemplateFunctionCall =
+            parseSymbol .>>. parseTemplateFunctionCallParameters .>>. parseFunctionCallArguments
+            |>> fun ((funcName, templateParameters), args) ->
+                CallExpr (TemplateFunctionCall {
+                            FuncName = funcName
+                            TemplateParameterList = templateParameters
+                            FunctionCallArguments = args })
         let parseFunctionCall = parseSymbol .>>. parseFunctionCallArguments
-        parseFunctionCall |>> (fun (funcName, args) ->
-        CallExpr
-            (FunctionCall
-                { FuncName = funcName
-                  FunctionCallArguments = args }))
+                              |>> fun (funcName, args) ->
+                                    CallExpr (FunctionCall
+                                                { FuncName = funcName
+                                                  FunctionCallArguments = args })
+        attempt parseTemplateFunctionCall <|> parseFunctionCall
 
     let parseBinaryOperatorExpr =
         let opp = new OperatorPrecedenceParser<Expr, unit, unit>()

@@ -86,9 +86,7 @@ module AST =
 
     and ADTParameterList = ADTTypeName list
 
-    and TemplateParameterList = TemplateParameter list
-
-    and TemplateParameter = GenericParameter of Symbol
+    and TemplateParameterList = TemplateTypeParameter list
 
     and ParameterList = Parameter list
 
@@ -104,6 +102,7 @@ module AST =
         | ArrowType of TypeSpec * TypeSpec
         | BasicType of BasicType
         | UserDefinedType of UserDefinedType
+        | TemplateType of string * TemplateTypeParameter list
 
     and BasicType =
         | IntType of IntType
@@ -141,6 +140,10 @@ module AST =
           ArraySize: uint64 }
 
     and UserDefinedType = Symbol
+
+    and TemplateTypeParameter =
+        | TTPExpr of Expr
+        | TTPTypeSpec of TypeSpec
 
     and Expr =
         | ReturnExpr of Expr

@@ -28,6 +28,8 @@ let doParserTest () =
       "TypeSpec"
       Parser.parseTypeSpec
       [
+        ("int", BasicType(IntType(DefaultInt)))
+        ("int!(32)", TemplateType ("int", [TTPExpr (Literal(IntegerLiteral(32L)))]))
         ("int -> int", ArrowType(BasicType(IntType(DefaultInt)), BasicType(IntType(DefaultInt))));
         ("int -> string -> uint",
           ArrowType(
@@ -49,7 +51,8 @@ let doParserTest () =
             BasicType(IntType(DefaultInt)),
             ArrowType(
                 BasicType(StringType),
-                BasicType(UIntType(DefaultUInt)))))]
+                BasicType(UIntType(DefaultUInt)))))
+      ]
 
     parserTest
       "ParameterList"
@@ -228,7 +231,7 @@ let doParserTest () =
           FalseExpr = None
         })
       ]
-    
+
     parserTest
       "ForExpr"
       Parser.parseForExpr
@@ -250,7 +253,7 @@ let doParserTest () =
           }
         )
       ]
-      
+
     parserTest
       "WhileExpr"
       Parser.parseWhileExpr
@@ -427,4 +430,6 @@ let main argv =
     testParseFile "./examples/for.tc" Parser.parseTopLevel
     testParseFile "./examples/while.tc" Parser.parseTopLevel
     testParseFile "./examples/controlFlow.tc" Parser.parseTopLevel
+
+    printfn "argv: %A" argv
     0 // return an integer exit code

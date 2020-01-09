@@ -1,3 +1,9 @@
 fn square<N>(x: N) : N {
   x * x
 }
+
+fn main(): void {
+  let x = square!(int)(20) in
+  let y = square!(int!(32))(20) in
+    printfn("x + y : %d", x + y)
+}
