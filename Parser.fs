@@ -154,9 +154,20 @@ module Parser =
                 { ParameterList = ps
                   Expr = e })
 
+    let parseRecordLiteral =
+        let parseRecordLiteralFields =
+            let parseRecordLiteralField =
+                (parseSymbol .>> parseChar '=') .>>. parseExpr
+                |>> fun (fieldName, fieldExpr) -> { FieldName = fieldName; FieldExpr = fieldExpr }
+            (many1 parseRecordLiteralField) |> between (parseChar '{') (parseChar '}')
+        parseType .>>. parseRecordLiteralFields
+        |>> fun (recordType, recordFields) ->
+             RecordLiteral { RecordType = recordType
+                             RecordLiteralFields = recordFields }
+
     let parseLiteral =
         choice
-            [ parseIntLiteral; parseStringLiteral; parseVoidLiteral; parseArrayLiteral; parseListLiteral; parseFunctionLiteral ]
+            [ parseIntLiteral; parseStringLiteral; parseVoidLiteral; parseArrayLiteral; parseListLiteral; parseFunctionLiteral; parseRecordLiteral ]
         |>> Literal |> between ws ws
 
     let parseVariable = parseSymbol |>> Expr.Variable
@@ -247,17 +258,17 @@ module Parser =
         ] |>> ControlFlowExpr
 
     parseExprR := choice
-                      [ attempt parseReturnExpr
-                        attempt parseControlFlowExpr
-                        attempt parseBlock |>> ExprSequence
-                        attempt parseLetExpr
-                        attempt parseIfExpr
-                        attempt parseForExpr
-                        attempt parseWhileExpr
-                        attempt parseBinaryOperatorExpr
-                        attempt parseCallExpr
-                        attempt parseVariable
-                        parseLiteral ]
+                  [ attempt parseReturnExpr
+                    attempt parseControlFlowExpr
+                    attempt parseBlock |>> ExprSequence
+                    attempt parseLetExpr
+                    attempt parseIfExpr
+                    attempt parseForExpr
+                    attempt parseWhileExpr
+                    attempt parseBinaryOperatorExpr
+                    attempt parseCallExpr
+                    attempt parseVariable
+                    parseLiteral ]
                   .>> opt (parseChar ';')
 
     let parseFunctionDef =

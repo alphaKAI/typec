@@ -256,7 +256,16 @@ module AST =
         | ListLiteral of Expr list
         | ArrayLiteral of Expr list
         | FunctionLiteral of FunctionLiteral
+        | RecordLiteral of RecordLiteral
 
     and FunctionLiteral =
         { ParameterList: ParameterList
           Expr: Expr }
+
+    and RecordLiteral =
+        { RecordType: TypeSpec
+          RecordLiteralFields: RecordLiteralField list }
+
+    and RecordLiteralField =
+        { FieldName: Symbol
+          FieldExpr: Expr }

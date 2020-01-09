@@ -122,6 +122,13 @@ let doParserTest () =
             ]
             Expr = AddExpr(Expr.Variable "x", Expr.Variable "y") |> MathExpr
           } |> Literal)
+        ("User { name = \"alphaKAI\"; age = 22 }",
+          RecordLiteral {
+            RecordType = TypeSpec.UserDefinedType "User"
+            RecordLiteralFields = [
+              { FieldName = "name"; FieldExpr = Literal(StringLiteral("alphaKAI"))}
+              { FieldName = "age"; FieldExpr = Literal(IntegerLiteral(22L))}
+          ]} |> Literal)
       ]
 
     parserTest
@@ -438,8 +445,57 @@ let testParseFile fileName p =
 
 open FParsec
 
+let logo = " _____ _            _____                  ____
+|_   _| |__   ___  |_   _|   _ _ __   ___ / ___|
+  | | | '_ \\ / _ \\   | || | | | '_ \\ / _ \\ |
+  | | | | | |  __/   | || |_| | |_) |  __/ |___
+  |_| |_| |_|\\___|   |_| \\__, | .__/ \\___|\\____|
+                         |___/|_|
+ ____                                                _
+|  _ \\ _ __ ___   __ _ _ __ __ _ _ __ ___  _ __ ___ (_)_ __   __ _
+| |_) | '__/ _ \\ / _` | '__/ _` | '_ ` _ \\| '_ ` _ \\| | '_ \\ / _` |
+|  __/| | | (_) | (_| | | | (_| | | | | | | | | | | | | | | | (_| |
+|_|   |_|  \\___/ \\__, |_|  \\__,_|_| |_| |_|_| |_| |_|_|_| |_|\\__, |
+                 |___/                                       |___/
+ _
+| |    __ _ _ __   __ _ _   _  __ _  __ _  ___
+| |   / _` | '_ \\ / _` | | | |/ _` |/ _` |/ _ \\
+| |__| (_| | | | | (_| | |_| | (_| | (_| |  __/
+|_____\\__,_|_| |_|\\__, |\\__,_|\\__,_|\\__, |\\___|
+                  |___/             |___/"
+
+let runParserREPL () =
+  printfn "%s" logo
+  let mutable flag = true
+  while flag do
+    printf "> "
+    Console.Out.Flush ()
+    let line = Console.ReadLine () |> String.trimWhiteSpaces
+    if line = "exit" then
+      flag <- false
+    else if String.length line = 0 then
+      ()
+    else
+      try
+        let r = Parser.parseBy Parser.parseTopLevel line
+        printfn "%A" r
+      with
+        | Parser.ParseException ->
+          printfn "ParseError"
+        | ex ->
+          printfn "%s" ex.Message
+  0
+
+exception InvalidArgumentException
+
 [<EntryPoint>]
 let main argv =
+  if Array.length argv = 1 then
+    let arg = argv.[0]
+    match arg with
+    | "prepl" -> runParserREPL ()
+    | _ -> raise InvalidArgumentException
+  else
     doParserTest ()
     testParseFile "./examples/helloworld.tc" Parser.parseTopLevel
     testParseFile "./examples/template_func.tc" Parser.parseTopLevel
@@ -450,5 +506,6 @@ let main argv =
     testParseFile "./examples/controlFlow.tc" Parser.parseTopLevel
     testParseFile "./examples/struct.tc" Parser.parseTopLevel
 
-    printfn "argv: %A" argv
+    printfn "[OK]"
+    printfn "%s" logo
     0 // return an integer exit code
