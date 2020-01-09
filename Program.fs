@@ -345,6 +345,16 @@ let doParserTest () =
       ]
 
     parserTest
+      "ControlFlowExpr"
+      Parser.parseControlFlowExpr
+      [
+        ("label1:", ControlFlowExpr(LabelExpr("label1")))
+        ("break", ControlFlowExpr(BreakExpr(None)))
+        ("break(label1)", ControlFlowExpr(BreakExpr(Some "label1")))
+        ("continue", ControlFlowExpr(ContinueExpr))
+      ]
+
+    parserTest
       "Expr"
       Parser.parseExpr
       [
@@ -354,6 +364,26 @@ let doParserTest () =
         ("1 + 2;", AddExpr(Literal(IntegerLiteral(1L)), Literal(IntegerLiteral(2L))) |> MathExpr)
         ("1234",  (Literal(IntegerLiteral 1234L)))
         ("1234;", (Literal(IntegerLiteral 1234L)))
+
+        ("break", ControlFlowExpr(BreakExpr(None)))
+        ("break;", ControlFlowExpr(BreakExpr(None)))
+        ("break(label1)", ControlFlowExpr(BreakExpr(Some "label1")))
+        ("break(label1);", ControlFlowExpr(BreakExpr(Some "label1")))
+
+        ("{ println(\"expr1\"); println(\"expr2\");} ", ExprSequence [
+          CallExpr (FunctionCall {
+            FuncName = "println"
+            FunctionCallArguments = [
+              Literal(StringLiteral("expr1"))
+            ]
+          })
+          CallExpr (FunctionCall {
+            FuncName = "println"
+            FunctionCallArguments = [
+              Literal(StringLiteral("expr2"))
+            ]
+          })
+        ])
       ]
 
     parserTest
@@ -396,4 +426,5 @@ let main argv =
     testParseFile "./examples/if.tc" Parser.parseTopLevel
     testParseFile "./examples/for.tc" Parser.parseTopLevel
     testParseFile "./examples/while.tc" Parser.parseTopLevel
+    testParseFile "./examples/controlFlow.tc" Parser.parseTopLevel
     0 // return an integer exit code

@@ -122,7 +122,7 @@ module Parser =
 
     let parseForExpr =
         (((parseString "for" >>. parseSymbol) .>> parseChar '=') .>>. parseExpr) .>>. (parseString "to" >>. parseExpr) .>>. parseBlock
-        |>> (fun (((sym, begin'), end'), block) -> 
+        |>> (fun (((sym, begin'), end'), block) ->
             ForExpr {
                 Symbol = sym
                 Begin = begin'
@@ -221,9 +221,34 @@ module Parser =
         opp.AddOperator(PrefixOperator("~", ws, 4, true, LNotExpr >> BitwiseExpr))
         opp.ExpressionParser
 
+    let parseControlFlowExpr =
+        let parseLabelExpr =
+            parseSymbol .>> parseChar ':'
+            |>> LabelExpr
+
+        let parseBreakExpr =
+            (parseString "break") >>. opt (parseChar '(' >>. parseSymbol .>> parseChar ')')
+            |>> BreakExpr
+
+        let parseContinueExpr =
+            parseString "continue"
+            |>> fun _ -> ContinueExpr
+
+        let parseGotoExpr =
+            parseString "goto" >>. parseSymbol
+            |>> GotoExpr
+
+        choice [
+            attempt parseLabelExpr
+            attempt parseBreakExpr
+            attempt parseContinueExpr
+            parseGotoExpr
+        ] |>> ControlFlowExpr
 
     parseExprR := choice
                       [ attempt parseReturnExpr
+                        attempt parseControlFlowExpr
+                        attempt parseBlock |>> ExprSequence
                         attempt parseLetExpr
                         attempt parseIfExpr
                         attempt parseForExpr

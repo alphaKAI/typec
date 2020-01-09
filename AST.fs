@@ -155,7 +155,9 @@ module AST =
         | CompareExpr of CompareExpr
         | BitwiseExpr of BitwiseExpr
         | AssignExpr of AssignExpr
+        | ControlFlowExpr of ControlFlowExpr
         | Variable of Variable
+        | ExprSequence of Block
         | Literal of Literal
 
     and LetExpr =
@@ -232,6 +234,12 @@ module AST =
     and AssignExpr =
         { DstSymbol: Symbol
           SrcExpr: Expr }
+
+    and ControlFlowExpr =
+        | LabelExpr of Symbol
+        | BreakExpr of Symbol option
+        | ContinueExpr
+        | GotoExpr of Symbol
 
     and FunctionCallArguments = Expr list
 
