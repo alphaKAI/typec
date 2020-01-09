@@ -61,7 +61,7 @@ module Parser =
     parseTypeR := choice
                       [ attempt parseArrowType
                         attempt parseBasicType
-                        attempt parseDefaultUIntType ]
+                        attempt parseUserDefinedType ]
 
     let parseTypeSpec = parseType
 
