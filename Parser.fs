@@ -12,14 +12,6 @@ module Parser =
     let isAsciiIdStart c = isAsciiLetter c
     let isAsciiIdContinue c = isAsciiLetter c || isDigit c
 
-    (*
-    let identOpts =
-        IdentifierOptions
-            (isAsciiIdStart = isAsciiIdStart, isAsciiIdContinue = isAsciiIdContinue,
-             normalization = NormalizationForm.FormKC, normalizeBeforeValidation = true)
-    let ident = identifier identOpts
-    *)
-
     let ident =
         let isIdentifierFirstChar c = isLetter c || c = '_'
         let isIdentifierChar c = isLetter c || isDigit c || c = '_'
